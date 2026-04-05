@@ -1,8 +1,9 @@
 import asyncio
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
-from skills import coder, architect, engram
+from skills import architect, engram
 from skills.gamedev import pygame_renderer, pygame_combat, pygame_entities
+from skills.webdev import react_expert, css_ninja, backend_python, backend_php
 
 # 1. Cargar las claves secretas del archivo .env
 load_dotenv()
@@ -21,8 +22,23 @@ def hello_world(nombre: str) -> str:
 
 @mcp.tool()
 def crear_componente_react(nombre: str, descripcion: str, usar_tailwind: bool = True) -> str:
-    """Pídele a nuestro nuevo Ingeniero React Expert que programe por su cuenta un componente funcional complejo desde cero, con Tailwind y TSX, sin que tu IDE principal tenga que gastar sus tokens."""
-    return coder.generar_componente_react(nombre, descripcion, usar_tailwind)
+    """USA ESTE AGENTE para crear componentes funcionales en React/TSX."""
+    return react_expert.generar_componente_react(nombre, descripcion, usar_tailwind)
+
+@mcp.tool()
+def generar_css_ninja(descripcion: str, usar_tailwind: bool = True) -> str:
+    """USA ESTE AGENTE para maquetar interfaces preciosas, flexbox, grid, animaciones CSS o utilidades complejas de Tailwind."""
+    return css_ninja.generar_css(descripcion, usar_tailwind)
+
+@mcp.tool()
+def programar_backend_python(descripcion: str) -> str:
+    """USA ESTE AGENTE cuando necesites crear APIs web (FastAPI/Flask) o lógica de base de datos en Python."""
+    return backend_python.compilar_api_python(descripcion)
+
+@mcp.tool()
+def programar_backend_php(descripcion: str) -> str:
+    """USA ESTE AGENTE cuando necesites crear scripts en PHP moderno, integraciones con WordPress, WooCommerce o utilidades Symfony."""
+    return backend_php.compilar_php(descripcion)
 
 @mcp.tool()
 def mapear_estructura(directorio: str, nivel_maximo: int = 3) -> str:
