@@ -202,6 +202,85 @@ def _cargar_engramas_sistema() -> str:
         return ""
 
 
+# Librerías que se detectan para usar Context7
+LIBRERIAS_CONTEXT7 = [
+    "react",
+    "next",
+    "nextjs",
+    "vue",
+    "angular",
+    "svelte",
+    "supabase",
+    "firebase",
+    "prisma",
+    "drizzle",
+    "fastapi",
+    "flask",
+    "django",
+    "express",
+    "node",
+    "python",
+    "typescript",
+    "javascript",
+    "tailwind",
+    "bootstrap",
+    "chakra",
+    "mui",
+    "docker",
+    "kubernetes",
+    "aws",
+    "gcp",
+    "azure",
+    "postgresql",
+    "mysql",
+    "mongodb",
+    "redis",
+    "graphql",
+    "rest",
+    "api",
+    "laravel",
+    "php",
+    "symfony",
+    "rust",
+    "go",
+    "java",
+    "c++",
+    "pytest",
+    "jest",
+    "unittest",
+    "vitest",
+]
+
+LIBRERIAS_ALIAS = {
+    "nextjs": "next",
+    "nodejs": "node",
+    "ts": "typescript",
+    "js": "javascript",
+}
+
+
+def _detectar_librerias(prompt: str) -> list:
+    """Detecta librerías mencionadas en el prompt que necesitan docs actualizadas."""
+    prompt_lower = prompt.lower()
+    librerias_encontradas = []
+
+    for lib in LIBRERIAS_CONTEXT7:
+        if lib in prompt_lower:
+            # Resolver alias
+            lib_normalizada = LIBRERIAS_ALIAS.get(lib, lib)
+            if lib_normalizada not in librerias_encontradas:
+                librerias_encontradas.append(lib_normalizada)
+
+    return librerias_encontradas
+
+
+def _generar_context7_prompt(librerias: list) -> str:
+    """Genera la instrucción 'use context7' para las librerías detectadas."""
+    if librerias:
+        return f"use context7 for {', '.join(librerias)}"
+    return ""
+
+
 def ejecutar_con_skill(prompt_usuario: str) -> str:
     """
     Orquestador principal con detección automática de skills.
@@ -219,7 +298,11 @@ def ejecutar_con_skill(prompt_usuario: str) -> str:
     # 0. Cargar engramas globales y de agente (SIEMPRE)
     engramas_sistema = _cargar_engramas_sistema()
 
-    # 1. Detectar si hay skill que coincida
+    # 1. Detectar librerías para Context7
+    librerias = _detectar_librerias(prompt_usuario)
+    context7_hint = _generar_context7_prompt(librerias)
+
+    # 2. Detectar si hay skill que coincida
     resultado = _detectar_skill_desde_indice(prompt_usuario)
 
     proveedor = _get_potente_config()
@@ -240,6 +323,8 @@ Eres el enjambre Súper Agente MCP. El usuario pide algo que coincide con la ski
 --- CONTEXTO DE LA SKILL ---
 {contexto_skill}
 
+{context7_hint}
+
 Instrucciones:
 - Usa la skill '{resultado["skill"]}' para completar la tarea
 - Genera solo el codigo necesario
@@ -254,6 +339,8 @@ Eres el Súper Agente MCP. El usuario hace una peticion que NO requiere ninguna 
 
 --- MEMORIA SIEMPRE PRESENTE ---
 {engramas_sistema}
+
+{context7_hint}
 
 Responde directamente de forma util y clara.
 
