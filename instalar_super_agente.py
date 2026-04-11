@@ -27,6 +27,7 @@ def instalar():
         ".env",
         "opencode.json",
         "server.py",
+        "skill_index.json",
     ]
 
     # Carpetas que se copian
@@ -104,15 +105,24 @@ def instalar():
     except Exception as e:
         print(f"   - Error actualizando: {e}")
 
+    print("\n3b. Instalando dependencias del Super Agente MCP...")
+    import subprocess
+
+    venv_dir = os.path.join(proyecto_actual, ".venv")
+    if not os.path.exists(venv_dir):
+        print("   - Creando entorno virtual...")
+        subprocess.run([sys.executable, "-m", "venv", ".venv"], check=True)
+
+    pip_path = os.path.join(venv_dir, "Scripts", "pip.exe")
+    print("   - Instalando mcp, litellm, python-dotenv...")
+    subprocess.run([pip_path, "install", "mcp", "litellm", "python-dotenv"], check=True)
+
     print("\n" + "=" * 50)
     print("INSTALACION COMPLETA")
     print("=" * 50)
     print("\nPasos siguientes:")
-    print("1. python -m venv .venv")
-    print("2. .venv\\Scripts\\Activate.ps1")
-    print("3. pip install mcp litellm python-dotenv")
-    print("4. Asegurate de que LM Studio este corriendo")
-    print("5. Reinicia OpenCode y verifica con /mcp")
+    print("1. Asegúrate de que LM Studio esté corriendo")
+    print("2. Reinicia OpenCode y verifica con /mcp")
 
 
 if __name__ == "__main__":

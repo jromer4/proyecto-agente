@@ -1,0 +1,119 @@
+{
+    "skills": [
+        {
+            "name": "react_expert",
+            "description": "Crear componentes React/TSX profesionales con TypeScript y hooks modernos",
+            "dominio": "webdev",
+            "archivo": "skills/webdev/react_expert.py",
+            "funcion": "generar_componente_react",
+            "parametros": [
+                "nombre",
+                "descripcion",
+                "usar_tailwind"
+            ]
+        },
+        {
+            "name": "css_ninja",
+            "description": "Diseñar interfaces con CSS puro, Tailwind, flexbox, grid y animaciones",
+            "dominio": "webdev",
+            "archivo": "skills/webdev/css_ninja.py",
+            "funcion": "generar_css",
+            "parametros": [
+                "descripcion",
+                "usar_tailwind"
+            ]
+        },
+        {
+            "name": "backend_python",
+            "description": "Crear APIs REST con FastAPI/Flask y bases de datos SQLAlchemy",
+            "dominio": "webdev",
+            "archivo": "skills/webdev/backend_python.py",
+            "funcion": "compilar_api_python",
+            "parametros": [
+                "descripcion"
+            ]
+        },
+        {
+            "name": "backend_php",
+            "description": "Desarrollar en PHP moderno, Laravel, WordPress y integraciones",
+            "dominio": "webdev",
+            "archivo": "skills/webdev/backend_php.py",
+            "funcion": "compilar_php",
+            "parametros": [
+                "descripcion"
+            ]
+        },
+        {
+            "name": "pygame_renderer",
+            "description": "Gráficos Pygame, Fake Pixel Art, escalado Nearest Neighbor, shaders básicos",
+            "dominio": "gamedev",
+            "archivo": "skills/gamedev/pygame_renderer.py",
+            "funcion": "generar_codigo_grafico",
+            "parametros": [
+                "descripcion"
+            ]
+        },
+        {
+            "name": "pygame_combat",
+            "description": "Matemáticas RPG: fórmulas de daño, vida, armadura, tiendas, balanceo",
+            "dominio": "gamedev",
+            "archivo": "skills/gamedev/pygame_combat.py",
+            "funcion": "generar_matematicas_combate",
+            "parametros": [
+                "descripcion"
+            ]
+        },
+        {
+            "name": "pygame_entities",
+            "description": "Lógica de enemigos, IA, movimiento hacia jugador, colisiones masivas",
+            "dominio": "gamedev",
+            "archivo": "skills/gamedev/pygame_entities.py",
+            "funcion": "generar_logica_entidades",
+            "parametros": [
+                "descripcion"
+            ]
+        },
+        {
+            "name": "github_master",
+            "description": "Asesoría Git y GitHub: flujos de ramas, commits, PRs, conflictos, mejores prácticas",
+            "dominio": "gitdev",
+            "archivo": "skills/gitdev/github_master.py",
+            "funcion": "asesorar_github",
+            "parametros": [
+                "peticion"
+            ]
+        },
+        {
+            "name": "mapear_estructura",
+            "description": "Generar árbol visual de carpetas de un proyecto, ignorando node_modules, .git",
+            "dominio": "estructura",
+            "archivo": "skills/architect.py",
+            "funcion": "mapear_estructura",
+            "parametros": [
+                "directorio",
+                "nivel_maximo"
+            ]
+        },
+        {
+            "name": "buscar_dependencias",
+            "description": "Escanear imports/requires de un archivo para ver dependencias externas",
+            "dominio": "estructura",
+            "archivo": "skills/architect.py",
+            "funcion": "buscar_dependencias",
+            "parametros": [
+                "ruta_archivo"
+            ]
+        },
+        {
+            "name": "resumir_codigo_con_ia",
+            "description": "Resumir archivos grandes usando IA para entender su propósito rápido",
+            "dominio": "estructura",
+            "archivo": "skills/architect.py",
+            "funcion": "resumir_codigo_con_ia",
+            "parametros": [
+                "ruta_archivo",
+                "notas_extra"
+            ]
+        }
+    ]
+}

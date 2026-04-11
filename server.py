@@ -124,7 +124,7 @@ def quien_eres() -> str:
 
 
 # ==========================================
-# ORQUESTADOR (gemma + Groq)
+# ORQUESTADOR (gemma + OpenRouter + detección automática)
 # ==========================================
 
 
@@ -132,13 +132,70 @@ def quien_eres() -> str:
 def orquestar(mensaje: str) -> str:
     """
     Orquestador optimizado para economar tokens:
-    1. Gemma (LM Studio) detecta la skill necesaria
-    2. Gemma prepara contexto resumido
-    3. Groq hace el trabajo pesado
+    1. Gemma (LM Studio) analiza el índice de skills
+    2. Decide si hay skill que coincida
+    3. Si SÍ: carga skill + engramas -> OpenRouter
+    4. Si NO: delegar directamente a OpenRouter
     """
     from skills import config_lm
 
-    return config_lm.orquestar(mensaje)
+    return config_lm.ejecutar_con_skill(mensaje)
+
+
+@mcp.tool()
+def ejecutar_prompt(prompt: str) -> str:
+    """
+    Ejecuta un prompt directamente con detección automática de skills.
+    Equivalente a orquestar() pero con nombre más claro.
+    """
+    from skills import config_lm
+
+    return config_lm.ejecutar_con_skill(prompt)
+
+
+# ==========================================
+# SKILL CREATOR
+# ==========================================
+
+
+@mcp.tool()
+def crear_skill(
+    nombre: str,
+    descripcion: str,
+    dominio: str = "generic",
+    parametros: str = "descripcion: str",
+) -> str:
+    """
+    Crea una nueva skill para el Super Agente.
+
+    Args:
+        nombre: Nombre de la skill (snake_case)
+        descripcion: Qué hace la skill
+        dominio: webdev, gamedev, gitdev, generic
+        parametros: Parámetros de la función (formato string)
+    """
+    from skills.skill_creator import crear_skill as _crear_skill
+
+    # Convertir string de parámetros a lista
+    params_list = [p.strip() for p in parametros.split(",")]
+
+    return _crear_skill(nombre, descripcion, dominio, params_list)
+
+
+@mcp.tool()
+def listar_skills() -> str:
+    """Lista todas las skills disponibles en el índice."""
+    from skills.skill_creator import listar_skills as _listar
+
+    return _listar()
+
+
+@mcp.tool()
+def buscar_skill(query: str) -> str:
+    """Busca skills que coincidan con la query."""
+    from skills.skill_creator import buscar_skill as _buscar
+
+    return _buscar(query)
 
 
 # ==========================================

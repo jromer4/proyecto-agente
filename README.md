@@ -1,6 +1,6 @@
 # 🤖 Súper Agente MCP
 
-> Servidor MCP modular con **memoria evolutiva por skill y proyecto** — un enjambre de agentes especializados que aprenden de cada interacción.
+> Servidor MCP con **sistema de skills con carga bajo demanda** — un enjambre de agentes especializados que aprende de cada interacción y decide automáticamente qué skill usar.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/)
@@ -12,26 +12,32 @@
 
 - [¿Qué es?](#-qué-es)
 - [Arquitectura](#-arquitectura)
+- [Flujo de ejecución](#-flujo-de-ejecución)
 - [Instalación rápida](#-instalación-rápida)
-- [Configuración en OpenCode](#-configuración-en-opencode)
+- [Configuración](#-configuración)
 - [Catálogo de herramientas](#-catálogo-de-herramientas)
-- [Sistema de memoria evolutiva](#-sistema-de-memoria-evolutiva)
-- [Crear una nueva skill](#-crear-una-nueva-skill)
-- [Contribuir](#-contribuir)
+- [Sistema de memoria](#-sistema-de-memoria)
+- [Skill Creator](#-skill-creator)
 - [Licencia](#-licencia)
 
 ---
 
 ## 🎯 ¿Qué es?
 
-El Súper Agente es un **servidor MCP** (Model Context Protocol) que actúa como orquestador de un enjambre de agentes especializados en distintos dominios del desarrollo de software:
+El Súper Agente es un **servidor MCP** (Model Context Protocol) con un sistema inteligente de gestión de skills:
 
-- 🌐 **WebDev** — React, CSS, Python y PHP backends.
-- 🎮 **GameDev** — Renderizado pixel-art, combate RPG y entidades masivas en Pygame.
-- 🐙 **GitDev** — Asesoría experta en flujos Git, PRs y Conventional Commits.
-- 🏗️ **Arquitecto** — Mapeo de proyectos, análisis de dependencias y resúmenes con IA.
+- **Carga bajo demanda**: Solo carga la skill necesaria, no todas
+- **Detección automática**: Gemma decide qué skill usar desde el índice
+- **Memoria evolutiva**: Cada skill aprende de sus interacciones
+- **Proveedores múltiples**: LM Studio (gemma) + OpenRouter/Groq
 
-Su diferenciador principal es el **sistema de memoria evolutiva (Engramas)**: cada agente aprende lecciones de sus interacciones y las consolida como conocimiento permanente, adaptándose al contexto de cada proyecto.
+### Proveedores de IA
+
+| Proveedor | Modelo | Uso |
+|-----------|--------|-----|
+| **LM Studio** | gemma-4-e2b-it | Detección de skills, preparación de contexto |
+| **OpenRouter** | LLaMA 3.1 8B | Trabajo pesado (código, respuestas) |
+| **Groq** | LLaMA 3.1 8B | Alternativo si OpenRouter falla |
 
 ---
 
@@ -39,153 +45,211 @@ Su diferenciador principal es el **sistema de memoria evolutiva (Engramas)**: ca
 
 ```
 proyecto-agente/
-├── server.py                  ← Orquestador MCP (registro de tools)
-├── opencode.json              ← Configuración para OpenCode
-├── pyproject.toml             ← Manifiesto estándar de Python
-├── engramas_agente.json       ← Base de datos temporal de engramas
-├── requirements.txt           ← Dependencias
-├── .env                       ← Claves API (Groq)
-└── skills/
-    ├── engram.py              ← 🧠 Cerebro (memoria evolutiva)
-    ├── architect.py           ← 🏗️ Mapeo, dependencias, resumidor
-    ├── webdev/
-    │   ├── react_expert.py    ← Componentes React/TSX
-    │   ├── css_ninja.py       ← Maquetación y animaciones CSS
-    │   ├── backend_python.py  ← APIs con FastAPI/Flask
-    │   └── backend_php.py     ← PHP, WordPress, Symfony
-    ├── gamedev/
-    │   ├── pygame_renderer.py ← Renderizado pixel-art en Pygame
-    │   ├── pygame_combat.py   ← Fórmulas matemáticas de combate RPG
-    │   └── pygame_entities.py ← Entidades masivas y colisiones
-    └── gitdev/
-        └── github_master.py   ← Asesor Git y GitHub
+├── server.py                  ← Orquestador MCP
+├── opencode.json              ← Configuración OpenCode
+├── skill_index.json           ← Índice de todas las skills (~50 tokens)
+├── engramas_agente.json       ← Memoria temporal
+├── procedimientos.json        ← Decisiones técnicas universales
+├── .env                       ← Claves API (LM Studio, OpenRouter, Groq)
+├── skills/
+│   ├── config_lm.py           ← Cerebro: detección + orquestación
+│   ├── engram.py              ← Sistema de memoria
+│   ├── skill_creator/         ← Meta-skill creadora de skills
+│   ├── webdev/                ← React, CSS, Python, PHP
+│   ├── gamedev/               ← Pygame: renderer, combat, entities
+│   ├── gitdev/                ← GitHub Master
+│   └── architect.py           ← Mapear, dependencias, resumir
 ```
 
 ---
 
-## ⚡ Instalación rápida
+## ⚡ Flujo de ejecución
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 1. PROMPT del usuario                                       │
+└──────────────────────────┬──────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 2. gemma lee skill_index (todas las descripciones)          │
+│    → Analiza: "¿Qué skill coincide?"                        │
+└──────────────────────────┬──────────────────────────────────┘
+             ┌─────────────┴─────────────┐
+             ↓                           ↓
+         COINCIDE                   NO COINCIDE
+             ↓                           ↓
+┌─────────────────────┐    ┌─────────────────────────┐
+│ Cargar ESA skill +  │    │ OpenRouter directo      │
+│ SUS engramas        │    │ (sin skill)             │
+└────────┬────────────┘    └───────────┬─────────────┘
+         ↓                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 3. OpenRouter con contexto (prompt + skill + memoria)       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🔌 Instalación rápida
 
 ```bash
-git clone https://github.com/jromer4/proyecto-agente.git
-cd proyecto-agente
+# Opción 1: En un proyecto nuevo
 python -m venv .venv
 # Windows: .\.venv\Scripts\Activate.ps1   |   Linux/Mac: source .venv/bin/activate
-pip install -r requirements.txt
+pip install mcp litellm python-dotenv
+
+# Opción 2: Usar el instalador automático
+python D:/josemi/proyecto-agente/instalar_super_agente.py
 ```
 
-> 📖 **Guía completa paso a paso:** Consulta [INSTALL.md](INSTALL.md) para instrucciones detalladas, configuración de OpenCode, errores comunes y soluciones.
+> ⚠️ **Importante**: Asegúrate de que LM Studio esté corriendo con tu modelo.
 
 ---
 
-## 🔌 Configuración en OpenCode
+## 📦 Configuración
 
-### Archivo del proyecto (`opencode.json`)
+### Archivo `.env`
+
+```env
+# Modelo local (LM Studio)
+LM_STUDIO_BASE_URL=http://127.0.0.1:1234/v1
+LM_STUDIO_MODEL=gemma-4-e2b-it
+
+# Proveedores externos (al menos uno)
+GROQ_API_KEY=tu_clave_groq
+OPENROUTER_API_KEY=tu_clave_openrouter
+OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct
+```
+
+### OpenCode (`opencode.json`)
 
 ```json
 {
   "mcp": {
     "super-agente": {
-      "command": "RUTA/.venv/Scripts/python.exe",
-      "args": ["RUTA/server.py"],
-      "type": "stdio"
+      "type": "local",
+      "command": ["RUTA/.venv/Scripts/python.exe", "RUTA/server.py"],
+      "enabled": true,
+      "environment": { "PYTHONIOENCODING": "utf-8" }
     }
   }
 }
 ```
 
-### Archivo global (`~/.opencode.json`)
-
-```json
-"super-agente": {
-  "command": "RUTA/.venv/Scripts/python.exe",
-  "args": ["RUTA/server.py"],
-  "type": "stdio"
-}
-```
-
-> ⚠️ **IMPORTANTE:** El archivo del proyecto usa la clave `"mcp"`. El archivo global usa `"mcpServers"`. **No los confundas.** Usa SOLO los campos `command`, `args` y `type`. Ver [INSTALL.md](INSTALL.md) para detalles y errores comunes.
-
 ---
 
 ## 🛠️ Catálogo de herramientas
 
-### Enjambre de agentes especializados
+### Orquestador principal
+
+| Herramienta | Descripción |
+|-------------|-------------|
+| `ejecutar_prompt` | Ejecuta prompt con detección automática de skills |
+| `orquestar` | Alias de ejecutar_prompt |
+
+### Memoria y procedimientos
+
+| Herramienta | Descripción |
+|-------------|-------------|
+| `guardar_engrama` | Guarda aprendizaje (tipo: global/proyecto) |
+| `guardar_procedimiento` | Guarda decisión técnica universal |
+| `recordar_memorias` | Recupera engramas filtrados |
+| `ver_procedimientos` | Lista todos los procedimientos |
+| `ver_contexto` | Muestra estado de memoria |
+
+### Skills del enjambre
 
 | Herramienta | Dominio | Descripción |
 |-------------|---------|-------------|
-| `crear_componente_react` | WebDev | Genera componentes funcionales en React/TSX |
-| `generar_css_ninja` | WebDev | Maquetación CSS, flexbox, grid y animaciones |
-| `programar_backend_python` | WebDev | APIs web con FastAPI/Flask y lógica de BD |
-| `programar_backend_php` | WebDev | Scripts PHP, WordPress, WooCommerce, Symfony |
-| `agente_render_pixelart` | GameDev | Renderizado y escalado gráfico en Pygame |
-| `agente_matematico_rpg` | GameDev | Fórmulas de daño, vida, armadura, economía |
-| `agente_entidades_masivas` | GameDev | Movimiento IA, colisiones y oleadas masivas |
-| `agente_github_master` | GitDev | Flujos Git, PRs, Conventional Commits |
+| `crear_componente_react` | WebDev | Componentes React/TSX |
+| `generar_css_ninja` | WebDev | CSS, Tailwind, animaciones |
+| `programar_backend_python` | WebDev | APIs FastAPI/Flask |
+| `programar_backend_php` | WebDev | PHP, WordPress |
+| `agente_render_pixelart` | GameDev | Gráficos Pygame pixel-art |
+| `agente_matematico_rpg` | GameDev | Fórmulas combate RPG |
+| `agente_entidades_masivas` | GameDev | Entidades y colisiones |
+| `agente_github_master` | GitDev | Asesoría Git/GitHub |
+| `mapear_estructura` | Estructura | Árbol de carpetas |
+| `buscar_dependencias` | Estructura | Análisis de imports |
+| `resumir_codigo_con_ia` | Estructura | Resumir archivos |
 
-### Herramientas de arquitectura
-
-| Herramienta | Descripción |
-|-------------|-------------|
-| `mapear_estructura` | Genera un árbol visual de carpetas del proyecto |
-| `buscar_dependencias` | Extrae imports/requires de un archivo |
-| `resumir_codigo_con_ia` | Resume un archivo largo usando Groq/Llama3 |
-
-### Sistema de memoria
+### Skill Creator
 
 | Herramienta | Descripción |
 |-------------|-------------|
-| `memorizar` | Guarda una lección para un agente específico |
-| `recordar_memorias` | Recupera engramas filtrados jerárquicamente |
-| `ver_contexto` | Muestra el proyecto detectado y estado de memoria |
-| `consolidar_skill` | Comprime engramas → lecciones permanentes en `.py` |
-| `consolidar_proyecto` | Comprime engramas generales de un proyecto |
-| `quien_eres` | Devuelve la identidad y mapa del enjambre |
-| `hello_world` | Test de conectividad del servidor |
+| `crear_skill` | Crea una nueva skill automáticamente |
+| `listar_skills` | Lista todas las skills del índice |
+| `buscar_skill` | Busca skills por nombre/descripción |
 
 ---
 
-## 🧠 Sistema de memoria evolutiva
+## 🧠 Sistema de memoria
 
-El sistema de **Engramas** organiza el conocimiento en una jerarquía de 4 niveles, de lo más general a lo más específico:
+### Tipos de memoria
 
-| Nivel | Skill | Proyecto | Alcance |
-|-------|-------|----------|---------|
-| 🌍 Global | `global` | `global` | Personalidad y reglas universales eternas |
-| 🔧 Skill | — | — | Lecciones consolidadas en el `.py` de cada skill |
-| 📂 Proyecto | `global` | `mi-app` | Reglas generales del proyecto activo |
-| 🎯 Skill+Proyecto | `react_expert` | `mi-app` | Reglas de una skill exclusivas para ese proyecto |
+| Tipo | Alcance | Ejemplo |
+|------|---------|---------|
+| **Global** | Siempre | Idioma, nombre (José) |
+| **Proyecto** | Solo proyecto actual | Reglas específicas de "mi-app" |
+| **Procedimientos** | Todos los proyectos | Decisiones técnicas universales |
 
-### ¿Cómo funciona?
+### Cómo aprenden las skills
 
-1. **Memorizar:** Cada vez que un agente corrige un patrón o aprende algo nuevo, se guarda como engrama temporal en `engramas_agente.json`.
-2. **Consolidar:** Cuando se acumulan varios engramas de una skill, se comprimen usando Groq/Llama3 y se inyectan como lecciones permanentes dentro del archivo `.py` de la skill.
-3. **Recordar:** Al invocar un agente, este consulta automáticamente su conocimiento consolidado para dar respuestas más precisas.
-4. **Detección automática:** El proyecto se identifica por el nombre de la carpeta de trabajo — no requiere configuración manual.
+1. **Engramas temporales**: Se guardan en `engramas_agente.json`
+2. **Consolidación**: Se comprimen y escriben en el `.py` de la skill
+3. **Carga automática**: La skill siempre carga sus lecciones al ejecutarse
+
+### Estructura de una skill
+
+```python
+# skills/webdev/react_expert.py
+from skills import engram, config_lm
+
+# === MEMORIA_CONSOLIDADA_START ===
+LECCIONES_CONSOLIDADAS = """
+- [REGLA]: Descripción de la regla aprendida
+"""
+# === MEMORIA_CONSOLIDADA_END ===
+
+def generar_componente_react(nombre: str, descripcion: str) -> str:
+    # Carga lecciones consolidadas
+    if LECCIONES_CONSOLIDADAS.strip():
+        instrucciones += f"LECCIONES: {LECCIONES_CONSOLIDADAS}"
+    
+    # Carga engramas temporales
+    memorias = engram.recuperar_engramas("react_expert")
+    
+    return config_lm.complete(messages=[...])
+```
 
 ---
 
-## 🧩 Crear una nueva skill
+## 🧩 Skill Creator
 
-1. Crea un archivo `.py` dentro del directorio `skills/` correspondiente.
-2. Incluye los marcadores de memoria obligatorios:
-   ```python
-   # === MEMORIA_CONSOLIDADA_START ===
-   LECCIONES_CONSOLIDADAS = """"""
-   # === MEMORIA_CONSOLIDADA_END ===
-   ```
-3. Registra la función en `server.py` con el decorador `@mcp.tool()`.
-4. Escribe un docstring descriptivo — OpenCode lo utiliza para decidir cuándo activar tu herramienta.
+El sistema incluye una **meta-skill** que puede crear nuevas skills automáticamente.
 
-Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para más detalles.
+### Uso
 
----
+```python
+# Crear una nueva skill
+crear_skill(
+    nombre="mi_nueva_skill",
+    descripcion="Descripción de qué hace",
+    dominio="webdev",  # webdev, gamedev, gitdev, generic
+    parametros=["descripcion: str"]
+)
+```
 
-## 🤝 Contribuir
+### Lo que hace automáticamente
 
-Las contribuciones son bienvenidas. Lee la [guía de contribución](CONTRIBUTING.md) para conocer:
-- El flujo de trabajo con ramas y PRs.
-- Las convenciones de commits y código.
-- La plantilla para crear nuevas skills.
+1. Genera el archivo `.py` con estructura completa
+2. Añade la skill al `skill_index.json`
+3. Configura integración con engram y config_lm
+4. La skill queda lista para usarse inmediatamente
+
+### Índice de skills
+
+El archivo `skill_index.json` contiene todas las skills disponibles con solo sus nombres y descripciones (~50 tokens para 50 skills), permitiendo que gemma analice siempre el índice completo sin aumentar el contexto.
 
 ---
 

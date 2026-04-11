@@ -1,3 +1,25 @@
 {
-    "procedimientos": []
+    "procedimientos": [
+        {
+            "nombre": "Instalar Super Agente MCP",
+            "pasos": [
+                "Ejecutar: python D:/josemi/proyecto-agente/instalar_super_agente.py",
+                "El script automáticamente crea el venv e instala las dependencias",
+                "Asegurarse de que LM Studio esté corriendo",
+                "Reiniciar OpenCode y verificar con /mcp"
+            ],
+            "notas": "El script de instalación ahora crea el entorno virtual e instala las dependencias automáticamente"
+        },
+        {
+            "nombre": "Sistema de Skills con Carga Bajo Demanda",
+            "pasos": [
+                "Usar ejecutar_prompt(prompt) para cualquier petición",
+                "gemma analiza skill_index y decide si hay skill que coincida",
+                "Si coincide: carga skill + engramas -> OpenRouter",
+                "Si no coincide: delegar directo a OpenRouter",
+                "Para crear nueva skill: usar crear_skill(nombre, descripcion, dominio)"
+            ],
+            "notas": "El índice de skills (~50 tokens) siempre está cargado. Solo se cargan los engramas de la skill específica cuando coincide."
+        }
+    ]
 }
