@@ -193,18 +193,31 @@ Descripcion: {skill_info["description"]}
 """
 
 
+def _cargar_engramas_sistema() -> str:
+    """Carga engramas globales y de agente (siempre presentes en todos los prompts)."""
+    try:
+        memorias = engram.recuperar_engramas()
+        return memorias if memorias and memorias != "Sin memorias guardadas." else ""
+    except:
+        return ""
+
+
 def ejecutar_con_skill(prompt_usuario: str) -> str:
     """
     Orquestador principal con detección automática de skills.
 
     Flujo:
-    1. Gemma analiza el índice de skills
-    2. Decide si hay skill que coincida
-    3. Si SÍ: carga skill + engramas -> OpenRouter
-    4. Si NO: delegar directamente a OpenRouter
+    1. Cargar engramas globales y de agente (SIEMPRE)
+    2. Gemma analiza el índice de skills
+    3. Decide si hay skill que coincida
+    4. Si SÍ: carga skill + engramas -> OpenRouter
+    5. Si NO: delegar directamente a OpenRouter
     """
     if not LM_STUDIO_MODEL:
         return "Error: No hay modelo LM Studio configurado"
+
+    # 0. Cargar engramas globales y de agente (SIEMPRE)
+    engramas_sistema = _cargar_engramas_sistema()
 
     # 1. Detectar si hay skill que coincida
     resultado = _detectar_skill_desde_indice(prompt_usuario)
@@ -221,6 +234,10 @@ def ejecutar_con_skill(prompt_usuario: str) -> str:
         system_prompt = f"""
 Eres el enjambre Súper Agente MCP. El usuario pide algo que coincide con la skill '{resultado["skill"]}'.
 
+--- MEMORIA SIEMPRE PRESENTE ---
+{engramas_sistema}
+
+--- CONTEXTO DE LA SKILL ---
 {contexto_skill}
 
 Instrucciones:
@@ -232,8 +249,12 @@ Instrucciones:
 """
     else:
         # No hay skill que coincida - delegar directamente
-        system_prompt = """
+        system_prompt = f"""
 Eres el Súper Agente MCP. El usuario hace una peticion que NO requiere ninguna skill especializada.
+
+--- MEMORIA SIEMPRE PRESENTE ---
+{engramas_sistema}
+
 Responde directamente de forma util y clara.
 
 Instrucciones:
