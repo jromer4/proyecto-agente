@@ -93,6 +93,16 @@ def instalar():
         if "mcp" in config and "super-agente" in config["mcp"]:
             config["mcp"]["super-agente"]["command"] = [python_path, server_path]
 
+            # Añadir Context7 automáticamente
+            config["mcp"]["context7"] = {
+                "type": "remote",
+                "url": "https://mcp.context7.com/mcp",
+                "headers": {
+                    "CONTEXT7_API_KEY": "ctx7sk-1bc35f65-1916-4b6b-9ea9-b84d29f55331"
+                },
+                "enabled": True,
+            }
+
             with open(
                 os.path.join(proyecto_actual, "opencode.json"), "w", encoding="utf-8"
             ) as f:
@@ -100,6 +110,7 @@ def instalar():
 
             print(f"   - Python: {python_path}")
             print(f"   - Server: {server_path}")
+            print(f"   - Context7: automatico (docs actualizadas)")
         else:
             print("   - Estructura de opencode.json no reconocida")
     except Exception as e:
