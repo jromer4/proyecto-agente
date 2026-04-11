@@ -103,6 +103,24 @@ def instalar():
                 "enabled": True,
             }
 
+            # Añadir Provider LM Studio si no existe
+            if "provider" not in config:
+                config["provider"] = {}
+            if "lmstudio" not in config["provider"]:
+                config["provider"]["lmstudio"] = {
+                    "npm": "@ai-sdk/openai-compatible",
+                    "name": "LM Studio (local)",
+                    "options": {
+                        "baseURL": "http://127.0.0.1:1234/v1",
+                        "apiKey": "lm-studio",
+                    },
+                    "models": {"gemma-4-e2b-it": {"name": "Gemma 4 (local)"}},
+                }
+
+            # Añadir modelo por defecto si no existe
+            if "model" not in config:
+                config["model"] = "lmstudio/gemma-4-e2b-it"
+
             with open(
                 os.path.join(proyecto_actual, "opencode.json"), "w", encoding="utf-8"
             ) as f:
@@ -111,6 +129,8 @@ def instalar():
             print(f"   - Python: {python_path}")
             print(f"   - Server: {server_path}")
             print(f"   - Context7: automatico (docs actualizadas)")
+            print(f"   - LM Studio provider: configurado")
+            print(f"   - Modelo: lmstudio/gemma-4-e2b-it")
         else:
             print("   - Estructura de opencode.json no reconocida")
     except Exception as e:

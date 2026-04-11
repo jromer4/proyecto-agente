@@ -1,5 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "lmstudio/gemma-4-e2b-it",
+  "provider": {
+    "lmstudio": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LM Studio (local)",
+      "options": {
+        "baseURL": "http://127.0.0.1:1234/v1",
+        "apiKey": "lm-studio"
+      },
+      "models": {
+        "gemma-4-e2b-it": {
+          "name": "Gemma 4 (local)"
+        }
+      }
+    }
+  },
   "mcp": {
     "super-agente": {
       "type": "local",
