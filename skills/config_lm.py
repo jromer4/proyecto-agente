@@ -251,6 +251,32 @@ LIBRERIAS_CONTEXT7 = [
     "vitest",
 ]
 
+# Palabras clave para detección automática de búsqueda web
+PALABRAS_BUSQUEDA = [
+    "busca",
+    "buscar",
+    "búsqueda",
+    "search",
+    "qué es",
+    "who is",
+    "what is",
+    "como funciona",
+    "últimas noticias",
+    "latest news",
+    "recent",
+    "información de",
+    "info sobre",
+    "dime sobre",
+    "actualizado",
+    "2024",
+    "2025",
+    "2026",
+    "google",
+    "wikipedia",
+    "documentación",
+    "docs",
+]
+
 LIBRERIAS_ALIAS = {
     "nextjs": "next",
     "nodejs": "node",
@@ -281,6 +307,40 @@ def _generar_context7_prompt(librerias: list) -> str:
     return ""
 
 
+def _detectar_necesidad_busqueda(prompt: str) -> bool:
+    """Detecta si el prompt requiere búsqueda web."""
+    prompt_lower = prompt.lower()
+    for palabra in PALABRAS_BUSQUEDA:
+        if palabra in prompt_lower:
+            return True
+    return False
+
+
+def _preparar_busqueda_web(prompt: str) -> str:
+    """Si se detecta necesidad de búsqueda, retorna la query para buscar."""
+    prompt_lower = prompt.lower()
+
+    # Extraer la query de búsqueda
+    query = prompt
+    # Limpiar prefijos comunes
+    prefijos = [
+        "busca",
+        "buscar",
+        "búsqueda de",
+        "search for",
+        "qué es",
+        "what is",
+        "dime sobre",
+        "información de",
+    ]
+    for prefijo in prefijos:
+        if prompt_lower.startswith(prefijo):
+            query = prompt[len(prefijo) :].strip()
+            break
+
+    return query if query else prompt
+
+
 def ejecutar_con_skill(prompt_usuario: str) -> str:
     """
     Orquestador principal con detección automática de skills.
@@ -298,11 +358,53 @@ def ejecutar_con_skill(prompt_usuario: str) -> str:
     # 0. Cargar engramas globales y de agente (SIEMPRE)
     engramas_sistema = _cargar_engramas_sistema()
 
-    # 1. Detectar librerías para Context7
+    # 1. Detectar si necesita búsqueda web
+    if _detectar_necesidad_busqueda(prompt_usuario):
+        from skills.webdev.buscar_web import buscar_web, buscar_y_resumir
+
+        query = _preparar_busqueda_web(prompt_usuario)
+
+        try:
+            # Ejecutar búsqueda y dejar que gemma resuma
+            resultados_busqueda = buscar_web(query, max_resultados=5)
+
+            # Preparar prompt para que gemma resuma los resultados
+            system_prompt = f"""
+Eres el Súper Agente MCP. El usuario ha pedido información que requiere búsqueda web.
+
+--- MEMORIA SIEMPRE PRESENTE ---
+{engramas_sistema}
+
+--- RESULTADOS DE BÚSQUEDA ---
+{resultados_busqueda}
+
+Instrucciones:
+- Resume los resultados de búsqueda de forma clara
+- Cita las fuentes cuando sea relevante
+- Usa español de España
+- Llama al usuario por su nombre (Jose)
+- Si la información es insuficiente, indica que no tienes datos suficientes
+"""
+            response = litellm.completion(
+                model=proveedor["model"],
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt_usuario},
+                ],
+                api_key=proveedor["api_key"],
+                **proveedor["extra"],
+                max_tokens=800,
+                temperature=0.2,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error en búsqueda web: {str(e)}\n\nPuedes intentar la búsqueda manualmente."
+
+    # 2. Detectar librerías para Context7
     librerias = _detectar_librerias(prompt_usuario)
     context7_hint = _generar_context7_prompt(librerias)
 
-    # 2. Detectar si hay skill que coincida
+    # 3. Detectar si hay skill que coincida
     resultado = _detectar_skill_desde_indice(prompt_usuario)
 
     proveedor = _get_potente_config()

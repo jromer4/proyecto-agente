@@ -126,6 +126,17 @@
                 "tipo: str",
                 "dialecto: str"
             ]
+        },
+        {
+            "name": "buscar_web",
+            "description": "Busca información en la web usando DuckDuckGo y resume los resultados",
+            "dominio": "webdev",
+            "archivo": "skills/webdev/buscar_web.py",
+            "funcion": "buscar_web",
+            "parametros": [
+                "query: str",
+                "max_resultados: int"
+            ]
         }
     ]
 }
