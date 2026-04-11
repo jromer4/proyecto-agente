@@ -114,6 +114,18 @@
                 "ruta_archivo",
                 "notas_extra"
             ]
+        },
+        {
+            "name": "sql_expert",
+            "description": "Crea consultas SQL, esquemas, seeders y optimiza queries para MySQL, PostgreSQL y SQLite",
+            "dominio": "webdev",
+            "archivo": "D:\\josemi\\proyecto-agente\\skills\\webdev\\sql_expert.py",
+            "funcion": "sql_expert",
+            "parametros": [
+                "descripcion: str",
+                "tipo: str",
+                "dialecto: str"
+            ]
         }
     ]
 }
