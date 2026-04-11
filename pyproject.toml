@@ -1,0 +1,36 @@
+[project]
+name = "super-agente-mcp"
+version = "1.0.0"
+description = "Servidor MCP modular con memoria evolutiva por skill y proyecto para IDEs con soporte de Model Context Protocol."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "josemi"}
+]
+keywords = ["mcp", "opencode", "ai-agent", "model-context-protocol", "coding-assistant"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.urls]
+Homepage = "https://github.com/jromer4/proyecto-agente"
+Repository = "https://github.com/jromer4/proyecto-agente"
+Issues = "https://github.com/jromer4/proyecto-agente/issues"
+
+[project.scripts]
+super-agente = "server:mcp.run"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["skills*"]

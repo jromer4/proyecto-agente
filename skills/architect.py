@@ -3,6 +3,26 @@ import re
 import litellm
 from pathlib import Path
 
+LM_STUDIO_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
+LM_STUDIO_MODEL = os.getenv("LM_STUDIO_MODEL", "")
+
+
+def _get_litellm_model():
+    """Determina qué modelo usar: local (LM Studio) o cloud (Groq)."""
+    if LM_STUDIO_MODEL:
+        return f"openai/{LM_STUDIO_MODEL}"
+    return "groq/llama3-8b-8192"
+
+
+def _get_litellm_config():
+    """Retorna config para LiteLLM."""
+    if LM_STUDIO_MODEL:
+        return {
+            "base_url": LM_STUDIO_URL,
+            "api_key": "dummy-key"  # LM Studio no requiere API key
+        }
+    return {}  # Groq usa API key del .env
+
 def mapear_estructura(directorio_base: str, nivel_maximo: int = 3) -> str:
     """
     Genera un mapa visual (árbol) de un directorio.
@@ -75,13 +95,16 @@ def resumir_codigo_con_ia(ruta_archivo: str, notas_extra: str = "") -> str:
             
         prompt = f"Eres un Arquitecto de Software. Haz un resumen extremadamente breve de para qué sirve este código sin detallar paso a paso. Notas extra del usuario: {notas_extra}\n\nCódigo:\n{codigo}"
         
+        model = _get_litellm_model()
+        extra_config = _get_litellm_config()
+        
         response = litellm.completion(
-            model="groq/llama3-8b-8192",
+            model=model,
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=250
+            max_tokens=250,
+            **extra_config
         )
         return response.choices[0].message.content
         
     except Exception as e:
-        # Aquí capturamos si falta la clave en .env, etc.
-        return f"Error del resumidor (¿Tienes tu clave GROQ_API_KEY en .env?): {str(e)}"
+        return f"Error del resumidor: {str(e)}"

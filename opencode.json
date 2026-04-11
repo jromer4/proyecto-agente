@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "super-agente": {
+      "type": "local",
+      "command": [
+        "D:/josemi/proyecto-agente/.venv/Scripts/python.exe",
+        "D:/josemi/proyecto-agente/server.py"
+      ],
+      "enabled": true,
+      "environment": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}

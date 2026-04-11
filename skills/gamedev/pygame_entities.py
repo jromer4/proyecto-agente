@@ -1,5 +1,12 @@
 import litellm
-from skills import engram
+from skills import engram, config_lm
+
+# === MEMORIA_CONSOLIDADA_START ===
+LECCIONES_CONSOLIDADAS = """
+"""
+# === MEMORIA_CONSOLIDADA_END ===
+
+SKILL_NAME = "pygame_entities"
 
 def generar_logica_entidades(descripcion: str) -> str:
     """Especialista en Enemigos, IA Flocking y Colisiones Pygame."""
@@ -8,18 +15,19 @@ def generar_logica_entidades(descripcion: str) -> str:
     - REGLA DE RENDIMIENTO PARA ROGUELIKES: Como puede haber 400 enemigos en pantalla simultáneos, NUNCA uses cálculos matemáticos complejos O(N^2) para moverlos.
     - Usa 'pygame.sprite.Group' y optimización de colisiones usando Quadtrees o Hash Grids espaciales si el usuario te pide manejo masivo.
     - Los enemigos siempre persiguen al jugador de la forma más barata para el procesador (vectores simples).
-    Devuelve solo código puro, sin explicaciones.
     """
-    
-    memorias = engram.recuperar_engramas("entidades")
-    if "No hay memorias" not in memorias and "Error" not in memorias:
-        instrucciones += f"\nLecciones base del usuario:\n{memorias}"
-        
+
+    if LECCIONES_CONSOLIDADAS.strip():
+        instrucciones += f"\n--- LECCIONES PERMANENTES APRENDIDAS ---\n{LECCIONES_CONSOLIDADAS.strip()}\n"
+
+    memorias = engram.recuperar_engramas(SKILL_NAME)
+    if "No hay memorias" not in memorias and "Error" not in memorias and "No hay engramas" not in memorias:
+        instrucciones += f"\n--- LECCIONES TEMPORALES RECIENTES ---\n{memorias}\n"
+
     try:
-        response = litellm.completion(
-            model="groq/llama3-8b-8192", 
+        response = config_lm.complete(
             messages=[{"role": "system", "content": instrucciones}, {"role": "user", "content": descripcion}],
-            max_tokens=600 
+            max_tokens=600
         )
         return response.choices[0].message.content
     except Exception as e:

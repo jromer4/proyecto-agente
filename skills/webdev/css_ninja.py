@@ -1,5 +1,12 @@
 import litellm
-from skills import engram
+from skills import engram, config_lm
+
+# === MEMORIA_CONSOLIDADA_START ===
+LECCIONES_CONSOLIDADAS = """
+"""
+# === MEMORIA_CONSOLIDADA_END ===
+
+SKILL_NAME = "css_ninja"
 
 def generar_css(descripcion: str, usar_tailwind: bool = True) -> str:
     """Especialista en estilos visuales, Flexbox, Grid y Animaciones Keyframe."""
@@ -8,18 +15,18 @@ def generar_css(descripcion: str, usar_tailwind: bool = True) -> str:
         instrucciones += "Usa exclusivamente utilidades y configuraciones de Tailwind CSS.\n"
     else:
         instrucciones += "Usa CSS puro (Vanilla), CSS Variables, Flexbox, Grid y animaciones complejas.\n"
-        
-    instrucciones += "Devuelve solo el código final listo para implementar, sin texto de saludo ni explicaciones."
-    
-    memorias = engram.recuperar_engramas("css")
-    if "No hay memorias" not in memorias and "Error" not in memorias:
-        instrucciones += f"\nLecciones visuales base del usuario:\n{memorias}"
-        
+
+    if LECCIONES_CONSOLIDADAS.strip():
+        instrucciones += f"\n--- LECCIONES PERMANENTES APRENDIDAS ---\n{LECCIONES_CONSOLIDADAS.strip()}\n"
+
+    memorias = engram.recuperar_engramas(SKILL_NAME)
+    if "No hay memorias" not in memorias and "Error" not in memorias and "No hay engramas" not in memorias:
+        instrucciones += f"\n--- LECCIONES TEMPORALES RECIENTES ---\n{memorias}\n"
+
     try:
-        response = litellm.completion(
-            model="groq/llama3-8b-8192", 
+        response = config_lm.complete(
             messages=[{"role": "system", "content": instrucciones}, {"role": "user", "content": descripcion}],
-            max_tokens=600 
+            max_tokens=600
         )
         return response.choices[0].message.content
     except Exception as e:
